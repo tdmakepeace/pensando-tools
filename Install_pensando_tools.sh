@@ -233,8 +233,9 @@ broker()
 	/$rootfolder/$brokerbasefolder/setup
 	
 	
-		echo -e "\e[0;31mMake sure you logout and then log back in to make use of the new enviromental variables  \n\e[0m"
-		echo -e "\e[0;31mOnce logged back in, change directory to: \e[1;33m/$rootfolder/$brokerbasefolder/ \e[0;31mThen run the followeing docker command:\n \e[1;33mdocker compose up -d \n\e[0m"			
+		echo -e "\e[0;31mMake sure you logout and then log back in to make use of the new enviroment variables.  \n\e[0m"
+		echo -e "\e[0;31mOnce logged back in, change directory to: \e[1;33m/$rootfolder/$brokerbasefolder/ \e[0;31m\n\n"
+		echo -e "Then run the following docker command:\n \e[1;33mdocker compose up -d \n\e[0m"			
 		
 }
 
