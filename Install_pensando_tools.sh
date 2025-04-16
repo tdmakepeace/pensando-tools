@@ -150,6 +150,7 @@ check_rootfolder_permissions()
     real_user=$(whoami)
 
 	# Check if the rootfolder exists
+	echo "Checking if $rootfoler exists"
     if [ -d "/$rootfolder" ]; then
         # Check if the directory is writable by the current user
         if [ -w "/$rootfolder" ]; then
