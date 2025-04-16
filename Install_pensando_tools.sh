@@ -180,7 +180,7 @@ base()
 	os=`more /etc/os-release |grep PRETTY_NAME | cut -d  \" -f2 | cut -d " " -f1`
 	if [ "$os" == "Ubuntu" ]; then 
 			updates
-			check_rootfolder_permissions()
+			check_rootfolder_permissions
 			sudo mkdir -p /etc/apt/keyrings
 			sudo  NEEDRESTART_SUSPEND=1 apt-get install curl gnupg ca-certificates lsb-release --yes 
 			sudo mkdir -p /etc/apt/keyrings
@@ -210,7 +210,7 @@ base()
 	elif [ "$os" == "Red" ]; then
 		
 			echo " still to be written 	"
-			check_rootfolder_permissions()
+			check_rootfolder_permissions
 			sudo dnf -y install dnf-plugins-core
 			sudo dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
 			sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin kcat
