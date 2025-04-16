@@ -50,8 +50,8 @@
 ELK="TAG=8.16.1"
 elkgitlocation="https://github.com/amd/pensando-elk.git"
 elkbasefolder="pensando-elk"
-brokergitlocation="https://gitlab.com/pensando/tbd/otto/otto-docker.git"
-brokerbasefolder="otto-docker"
+brokergitlocation="https://gitlab.com/pensando/tbd/otto-docker.git"
+brokerbasefolder="apb"
 
 
 rootfolder="pensandotools"
