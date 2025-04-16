@@ -133,6 +133,45 @@ brokernote()
 }
 
 
+create_rootfolder()
+{
+	real_user=$(whoami)
+	cd /
+	sudo mkdir $rootfolder
+	sudo chown $real_user:$real_user $rootfolder
+	sudo chmod 777 $rootfolder
+	mkdir -p /$rootfolder/
+	mkdir -p /$rootfolder/scripts
+}
+
+check_rootfolder_permissions()
+{
+	# Get the current user
+    real_user=$(whoami)
+
+	# Check if the rootfolder exists
+    if [ -d "/$rootfolder" ]; then
+        # Check if the directory is writable by the current user
+        if [ -w "/$rootfolder" ]; then
+            echo "/$rootfolder exists and is writable by $real_user"
+        else
+            echo "/$rootfolder exists but is not writable by $real_user, changing ownership"
+            sudo chown $real_user:$real_user "/$rootfolder"
+            # Verify the change was successful
+            if [ -w "/$rootfolder" ]; then
+                echo "Successfully changed ownership of /$rootfolder to $real_user"
+            else
+                echo "Failed to make /$rootfolder writable by $real_user"
+                return 1
+            fi
+        fi
+    else
+        echo "/$rootfolder does not exist, creating it"
+        create_rootfolder
+    fi
+}
+
+
 base()
 {
 	real_user=$(whoami)
@@ -141,14 +180,8 @@ base()
 	os=`more /etc/os-release |grep PRETTY_NAME | cut -d  \" -f2 | cut -d " " -f1`
 	if [ "$os" == "Ubuntu" ]; then 
 			updates
-			cd /
-			sudo mkdir $rootfolder
-			sudo chown $real_user:$real_user $rootfolder
-			sudo chmod 777 $rootfolder
-			mkdir -p /$rootfolder/
-			mkdir -p /$rootfolder/scripts
+			check_rootfolder_permissions()
 			sudo mkdir -p /etc/apt/keyrings
-
 			sudo  NEEDRESTART_SUSPEND=1 apt-get install curl gnupg ca-certificates lsb-release --yes 
 			sudo mkdir -p /etc/apt/keyrings
 			curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg  
@@ -176,13 +209,8 @@ base()
 	
 	elif [ "$os" == "Red" ]; then
 		
-				echo " still to be written 	"
-			cd /
-			sudo mkdir $rootfolder
-			sudo chown $real_user:$real_user $rootfolder
-			sudo chmod 777 $rootfolder
-			mkdir -p /$rootfolder/
-			mkdir -p /$rootfolder/scripts
+			echo " still to be written 	"
+			check_rootfolder_permissions()
 			sudo dnf -y install dnf-plugins-core
 			sudo dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
 			sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin kcat
