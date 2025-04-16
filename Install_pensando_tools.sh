@@ -224,6 +224,7 @@ base()
 
 broker()
 {
+	check_rootfolder_permissions
 	cd /$rootfolder/
 	git clone $brokergitlocation
 	sleep 2
