@@ -50,7 +50,7 @@
 ELK="TAG=8.16.1"
 elkgitlocation="https://github.com/amd/pensando-elk.git"
 elkbasefolder="pensando-elk"
-brokergitlocation="https://gitlab.com/pensando/tbd/otto-docker.git"
+brokergitlocation="https://gitlab.com/pensando/tbd/APB/apb.git"
 brokerbasefolder="apb"
 
 
@@ -200,7 +200,7 @@ broker()
 	git clone $brokergitlocation
 	sleep 2
 	cd $brokerbasefolder/
-	/$rootfolder/$brokerbasefolder/setup_otto
+	/$rootfolder/$brokerbasefolder/setup
 	
 	
 		echo -e "\e[0;31mMake sure you logout and then log back in to make use of the new enviromental variables  \n\e[0m"
