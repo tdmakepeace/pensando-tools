@@ -30,7 +30,7 @@ If the deployment target requires a proxy server for internet connectivity and o
 Run the installation script using the following command:
 
 
-    wget -O ./Install_pensando_tools.sh https://raw.githubusercontent.com/amd/pensando-tools/refs/heads/main/Install_pensando_tools.sh && chmod +x ./Install_pensando_tools.sh && ./Install_pensando_tools.sh
+    wget -O Install_pensando_tools  https://raw.githubusercontent.com/tdmakepeace/pensando-tools/refs/heads/main/Install_pensando_tools.sh && chmod +x Install_pensando_tools  &&  ./Install_pensando_tools
 
 If proxy server configuration is required, select option **"p"** when prompted, and follow the instructions.
 
@@ -64,7 +64,7 @@ If the deployment target requires a proxy server for internet connectivity and o
 Run the installation script using the following command:
 
 
-    wget -O ./Install_pensando_tools.sh https://raw.githubusercontent.com/amd/pensando-tools/refs/heads/main/Install_pensando_tools.sh && chmod +x ./Install_pensando_tools.sh && ./Install_pensando_tools.sh
+    wget -O Install_pensando_tools  https://raw.githubusercontent.com/tdmakepeace/pensando-tools/refs/heads/main/Install_pensando_tools.sh && chmod +x Install_pensando_tools  &&  ./Install_pensando_tools
     
 If proxy server configuration is required, select option **"p"** when prompted, and follow the instructions.
 
