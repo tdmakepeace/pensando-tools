@@ -19,7 +19,7 @@
 ### To start this script from an Ubuntu server instance, run the following 
 ###  command:
 ###
-###  
+###
 ### wget -O Install_pensando_tools  https://raw.githubusercontent.com/tdmakepeace/pensando-tools/refs/heads/main/Install_pensando_tools.sh && chmod +x Install_pensando_tools  &&  ./Install_pensando_tools###
 ### 
 ###
@@ -142,10 +142,11 @@ base()
 	if [ "$os" == "Ubuntu" ]; then 
 			updates
 			cd /
-			sudo mkdir $rootfolder
-			sudo chown $real_user:$real_user $rootfolder
-			sudo chmod 777 $rootfolder
-			mkdir -p /$rootfolder/
+			if [ ! -d "$rootfolder" ]; then
+			  sudo mkdir -p $rootfolder
+				sudo chown $real_user:$real_user $rootfolder
+				sudo chmod 777 $rootfolder
+			fi
 			mkdir -p /$rootfolder/scripts
 			sudo mkdir -p /etc/apt/keyrings
 
@@ -196,6 +197,12 @@ base()
 
 broker()
 {
+	if [ ! -d "$rootfolder" ]; then
+	  sudo mkdir -p $rootfolder
+		sudo chown $real_user:$real_user $rootfolder
+		sudo chmod 777 $rootfolder
+	fi
+
 	cd /$rootfolder/
 	git clone $brokergitlocation
 	sleep 2
@@ -224,6 +231,11 @@ brokerdockerup()
 		
 elk()
 {
+	if [ ! -d "$rootfolder" ]; then
+	  sudo mkdir -p $rootfolder
+		sudo chown $real_user:$real_user $rootfolder
+		sudo chmod 777 $rootfolder
+	fi
 	cd /$rootfolder/
 	git clone $elkgitlocation
 	
