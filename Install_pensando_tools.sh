@@ -50,8 +50,8 @@
 ELK="TAG=8.16.1"
 elkgitlocation="https://github.com/amd/pensando-elk.git"
 elkbasefolder="pensando-elk"
-brokergitlocation="https://gitlab.com/pensando/tbd/otto/otto-docker.git"
-brokerbasefolder="otto-docker"
+brokergitlocation="https://gitlab.com/pensando/tbd/APB/apb.git"
+brokerbasefolder="apb"
 
 
 rootfolder="pensandotools"
@@ -133,6 +133,46 @@ brokernote()
 }
 
 
+create_rootfolder()
+{
+	real_user=$(whoami)
+	cd /
+	sudo mkdir $rootfolder
+	sudo chown $real_user:$real_user $rootfolder
+	sudo chmod 777 $rootfolder
+	mkdir -p /$rootfolder/
+	mkdir -p /$rootfolder/scripts
+}
+
+check_rootfolder_permissions()
+{
+	# Get the current user
+    real_user=$(whoami)
+
+	# Check if the rootfolder exists
+	echo "Checking if $rootfoler exists"
+    if [ -d "/$rootfolder" ]; then
+        # Check if the directory is writable by the current user
+        if [ -w "/$rootfolder" ]; then
+            echo "/$rootfolder exists and is writable by $real_user"
+        else
+            echo "/$rootfolder exists but is not writable by $real_user, changing ownership"
+            sudo chown $real_user:$real_user "/$rootfolder"
+            # Verify the change was successful
+            if [ -w "/$rootfolder" ]; then
+                echo "Successfully changed ownership of /$rootfolder to $real_user"
+            else
+                echo "Failed to make /$rootfolder writable by $real_user"
+                return 1
+            fi
+        fi
+    else
+        echo "/$rootfolder does not exist, creating it"
+        create_rootfolder
+    fi
+}
+
+
 base()
 {
 	real_user=$(whoami)
@@ -141,15 +181,9 @@ base()
 	os=`more /etc/os-release |grep PRETTY_NAME | cut -d  \" -f2 | cut -d " " -f1`
 	if [ "$os" == "Ubuntu" ]; then 
 			updates
-			cd /
-			if [ ! -d "$rootfolder" ]; then
-			  sudo mkdir -p $rootfolder
-				sudo chown $real_user:$real_user $rootfolder
-				sudo chmod 777 $rootfolder
-			fi
-			mkdir -p /$rootfolder/scripts
-			sudo mkdir -p /etc/apt/keyrings
+			check_rootfolder_permissions
 
+			sudo mkdir -p /etc/apt/keyrings
 			sudo  NEEDRESTART_SUSPEND=1 apt-get install curl gnupg ca-certificates lsb-release --yes 
 			sudo mkdir -p /etc/apt/keyrings
 			curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg  
@@ -177,13 +211,8 @@ base()
 	
 	elif [ "$os" == "Red" ]; then
 		
-				echo " still to be written 	"
-			cd /
-			sudo mkdir $rootfolder
-			sudo chown $real_user:$real_user $rootfolder
-			sudo chmod 777 $rootfolder
-			mkdir -p /$rootfolder/
-			mkdir -p /$rootfolder/scripts
+			echo " still to be written 	"
+			check_rootfolder_permissions
 			sudo dnf -y install dnf-plugins-core
 			sudo dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
 			sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin kcat
@@ -197,21 +226,17 @@ base()
 
 broker()
 {
-	if [ ! -d "$rootfolder" ]; then
-	  sudo mkdir -p $rootfolder
-		sudo chown $real_user:$real_user $rootfolder
-		sudo chmod 777 $rootfolder
-	fi
-
+	check_rootfolder_permissions
 	cd /$rootfolder/
 	git clone $brokergitlocation
 	sleep 2
 	cd $brokerbasefolder/
-	/$rootfolder/$brokerbasefolder/setup_otto
+	/$rootfolder/$brokerbasefolder/setup
 	
 	
-		echo -e "\e[0;31mMake sure you logout and then log back in to make use of the new enviromental variables  \n\e[0m"
-		echo -e "\e[0;31mOnce logged back in, change directory to: \e[1;33m/$rootfolder/$brokerbasefolder/ \e[0;31mThen run the followeing docker command:\n \e[1;33mdocker compose up -d \n\e[0m"			
+		echo -e "\e[0;31mMake sure you logout and then log back in to make use of the new enviroment variables.  \n\e[0m"
+		echo -e "\e[0;31mOnce logged back in, change directory to: \e[1;33m/$rootfolder/$brokerbasefolder/ \e[0;31m\n\n"
+		echo -e "Then run the following docker command:\n \e[1;33mdocker compose up -d \n\e[0m"			
 		
 }
 
