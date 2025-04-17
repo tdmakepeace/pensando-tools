@@ -19,7 +19,7 @@
 ### To start this script from an Ubuntu server instance, run the following 
 ###  command:
 ###
-###  
+###
 ### wget -O Install_pensando_tools  https://raw.githubusercontent.com/tdmakepeace/pensando-tools/refs/heads/main/Install_pensando_tools.sh && chmod +x Install_pensando_tools  &&  ./Install_pensando_tools###
 ### 
 ###
@@ -182,6 +182,7 @@ base()
 	if [ "$os" == "Ubuntu" ]; then 
 			updates
 			check_rootfolder_permissions
+
 			sudo mkdir -p /etc/apt/keyrings
 			sudo  NEEDRESTART_SUSPEND=1 apt-get install curl gnupg ca-certificates lsb-release --yes 
 			sudo mkdir -p /etc/apt/keyrings
@@ -255,6 +256,11 @@ brokerdockerup()
 		
 elk()
 {
+	if [ ! -d "$rootfolder" ]; then
+	  sudo mkdir -p $rootfolder
+		sudo chown $real_user:$real_user $rootfolder
+		sudo chmod 777 $rootfolder
+	fi
 	cd /$rootfolder/
 	git clone $elkgitlocation
 	
