@@ -128,7 +128,7 @@ brokernote()
 	echo -e "\nThis workflow requires input to link the broker to PSM, and will then run unattended to deploy and configure the broker components.\n" | fold -w 80 -s
 	echo -e "Please do not interrupt the script during this process, to avoid leaving the application in a partially-deployed state.\n" | fold -w 80 -s
 	echo -e "\n\nAccess the redpanda application in a browser from the following URL: "
-	echo -e "\e[0;31mhttps://$localip:8080\n\e[0m"
+	echo -e "\e[0;31mhttp://$localip:8080\n\e[0m"
 	read -p "Press enter to continue..."
 }
 
