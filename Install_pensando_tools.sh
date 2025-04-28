@@ -257,7 +257,6 @@ brokerdockerup()
 elk()
 {
 	check_rootfolder_permissions
-	
 	cd /$rootfolder/
 	git clone $elkgitlocation
 	
@@ -337,7 +336,7 @@ This is done as http only - if you wish to use https - refer to the ELK document
   	if  [[ "$p" == "y" ]]; then
   		cd /$rootfolder/$elkbasefolder/
   		docker compose down
-  		
+  		localip=`hostname -I | cut -d " " -f1`
 			export elkpass=$(< /dev/urandom tr -dc 'A-Za-z0-9' | head -c11)
 			export kibpass=$(< /dev/urandom tr -dc 'A-Za-z0-9' | head -c11)
 			
@@ -361,6 +360,7 @@ This is done as http only - if you wish to use https - refer to the ELK document
 
 
 			elkdockerupnote
+			echo -e " Default username and password setup is: \n\e[0;31madmin - \"Pensando0$\"\n\e[0m"
  
  		elif  [ "$p" == "n" ]; then
  			elkdockerupnote
