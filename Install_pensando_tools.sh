@@ -112,7 +112,6 @@ elknote()
 elkdockerupnote()
 {
 
-		clear
 		echo "Access the ELK Stack application in a browser from the following URL: "
 		echo -e "\e[0;31mhttp://$localip:5601\n\e[0m"
 				
@@ -320,9 +319,73 @@ elk()
 	
 }
 
+elksecurefile()
+{
+	
+	cd /$rootfolder/$elkbasefolder/
+
+	if grep -q "xpack.security.enabled=false" "docker-compose.yml"; then
+		cp docker-compose.yml docker-compose.yml.presec	
+
+		sed -i '/- cluster.initial_master_nodes=es01/d' docker-compose.yml
+		sed -i '/- node.name=es01/d' docker-compose.yml
+		sed -i.bak "s/- xpack.security.enabled=false/- discovery.type=single-node\n      - xpack.security.enabled=true\n      - ELASTIC_PASSWORD=changeme/" docker-compose.yml
+		sed -i.bak "s/pensando-kibana/pensando-kibana\n    environment:\n      - ELASTICSEARCH_HOSTS=http:\/\/elasticsearch:9200\n      - ELASTICSEARCH_USERNAME=kibana_system\n      - ELASTICSEARCH_PASSWORD=kibana_system_pass\n      - xpack.security.enabled=true/" docker-compose.yml
+		sed -i.bak  "s/pensando-logstash/pensando-logstash\n    environment:\n      - DICT_FILE= \{DICT_FILE\}/" docker-compose.yml
+	else
+	echo -e "\e[0;31mdocker compose with xpack already set up\e[0m\n check the config files"
+	fi
+
+
+	
+}
+
+elksecureup()
+{
+	export elkpass=$(< /dev/urandom tr -dc 'A-Za-z0-9' | head -c11)
+	export kibpass=$(< /dev/urandom tr -dc 'A-Za-z0-9' | head -c11)
+	cd logstash
+	sed -i.bak 's/hosts[[:space:]]*=>[[:space:]]*\[ '\''elasticsearch'\'' \]/hosts    => [ '\''elasticsearch'\'' ]\n    user => '\"'elastic'\"' \n    password => '\"$elkpass\"' /' dss_syslog.conf
+
+	cd ..
+	sed -i.bak 's/changeme/'$elkpass'/' docker-compose.yml
+	sed -i.bak 's/kibana_system_pass/'$kibpass'/' docker-compose.yml
+	sleep 2
+	docker compose up --detach --build
+	echo -e "Waiting 100 seconds for services to start before configuration password...\n" | fold -w 80 -s
+	sleep 20
+	echo -e "80 seconds remaining...\n"
+	sleep 20
+	echo -e "60 seconds remaining...\n"
+	sleep 20
+	echo -e "40 seconds remaining...\n"
+	sleep 20
+	echo -e "20 seconds remaining...\n"
+	sleep 15
+	echo -e "5 seconds remaining...\n"
+	sleep 1
+	echo -e "4 seconds remaining...\n"
+	sleep 1
+	echo -e "3 seconds remaining...\n"
+	sleep 1
+	echo -e "2 seconds remaining...\n"
+	sleep 1
+	echo -e "1 second remaining...\n"
+	sleep 1
+	clear
+	echo -e "Enter the following password into the password reset for Kibana_system :\e[0;31m $kibpass\e[0m"
+	docker exec -it pensando-elasticsearch /usr/share/elasticsearch/bin/elasticsearch-reset-password -i -u kibana_system 
+	curl -u elastic:$elkpass -X POST "http://localhost:9200/_security/user/admin?pretty" -H 'Content-Type: application/json' -d'{  "password" : "Pensando0$",  "roles" : [ "superuser" ],  "full_name" : "ELK Admin",  "email" : "admin@example.com"}'
+	clear
+	echo -e " Default username and password setup is: \n\e[0;31madmin - \"Pensando0$\"\n\e[0m"
+
+}
+
 secureelk()
 {
-		echo "Do you wish to enable ELK stack security for Kibana.
+	clear
+	localip=`hostname -I | cut -d " " -f1`
+	echo "Do you wish to enable ELK stack security for Kibana.
 This is done as http only - if you wish to use https - refer to the ELK documentation"
 	
 	echo ""
@@ -335,34 +398,24 @@ This is done as http only - if you wish to use https - refer to the ELK document
 
   	if  [[ "$p" == "y" ]]; then
   		cd /$rootfolder/$elkbasefolder/
-  		docker compose down
-  		localip=`hostname -I | cut -d " " -f1`
-			export elkpass=$(< /dev/urandom tr -dc 'A-Za-z0-9' | head -c11)
-			export kibpass=$(< /dev/urandom tr -dc 'A-Za-z0-9' | head -c11)
-			
-			
-			cd logstash
-			sed -i.bak 's/hosts[[:space:]]*=>[[:space:]]*\[ '\''elasticsearch'\'' \]/hosts    => [ '\''elasticsearch'\'' ]\n    user => '\"'elastic'\"' \n    password => '\"$elkpass\"' /' dss_syslog.conf
+			if grep -q "xpack.security.enabled=true" "docker-compose.yml"; then
+				if grep -q "ELASTIC_PASSWORD=changeme" "docker-compose.yml"; then
+    			docker compose down
+					elksecureup
+				else 
+					echo -e "\e[0;31mdocker compose with xpack already configured \n\e[0m"
 
-			cd ..
-			cp docker-compose.yml docker-compose.yml.nosecure
-			cp ~/ELK/docker-compose.yml.secureexample docker-compose.yml
-			sed -i.bak 's/changeme/'$elkpass'/' docker-compose.yml
-			sed -i.bak 's/kibana_system_pass/'$kibpass'/' docker-compose.yml
-			sleep 2
-
-			docker compose up --detach --build
-			sleep 120 
-			echo " Enter the following password into the password reset for Kibana_system : $kibpass"
-			docker exec -it pensando-elasticsearch /usr/share/elasticsearch/bin/elasticsearch-reset-password -i -u kibana_system 
-
-			curl -u elastic:$elkpass -X POST "http://localhost:9200/_security/user/admin?pretty" -H 'Content-Type: application/json' -d'{  "password" : "Pensando0$",  "roles" : [ "superuser" ],  "full_name" : "ELK Admin",  "email" : "admin@example.com"}'
-
-
-			elkdockerupnote
-			echo -e " Default username and password setup is: \n\e[0;31madmin - \"Pensando0$\"\n\e[0m"
+				fi 
+			else
+				docker compose down
+				elksecurefile
+				elksecureup
+			fi
  
+			elkdockerupnote
+
  		elif  [ "$p" == "n" ]; then
+ 			clear
  			elkdockerupnote
 		fi
 		 
@@ -716,6 +769,7 @@ testcode()
 		echo " 
 		Space for testing
 					"
+		#elksecurefile			
 		secureelk 
 		
 }
@@ -731,6 +785,7 @@ Workflows provided by this script will:
 
 - Prepare the base system deployment by ensuring that the operating system is up to date and that \n  all prerequisites are installed
 - Deploy and configure the ELK Stack components using Docker container instances and provided \n  configuration files 
+- Enable username and password on ELK
 - Deploy and configure the broker for Guardicore
 - Update deployed ELK Stack components to the latest release
 
@@ -738,11 +793,12 @@ If this is your first time running this script on this system, select [B] to sta
 
 NOTE: If a proxy server is required for this system to connect to the internet, select [P] to run the proxy server configuration workflow prior to starting base system preparation. \e[1;33mCurrently Ubuntu only \n\e[0m
 
-Once the base system preparation and reboot have been completed: \nselect [E] to run the ELK Stack deployment workflow.\nselect [R] to run the Broker deployment workflow.
+Once the base system preparation and reboot have been completed: \nselect [E] to run the ELK Stack deployment workflow.\nselect [R] to run the Broker deployment workflow.\nselect [U] to run and ELK Stack upgrade workflow.\nselect [S] to setup username and password management for ELK\n
 
 If the ELK Stack is already deployed and needs to be updated, select [U] to run the update workflow.\n" | fold -w 120 -s
 	
-	read -p "[B]ase system preparation, [E]LK Stack deployment, B[R]oker deployment, [U]pdate, [P]roxy configuration, or e[X]it: " x
+	read -p "[B]ase system preparation, [E]LK Stack deployment, B[R]oker deployment, [U]pdate ELK, 
+[S]ecure - Add username and password, [P]roxy configuration, or e[X]it: " x
 
   x=${x,,}
   
@@ -820,6 +876,11 @@ If the ELK Stack is already deployed and needs to be updated, select [U] to run 
 			x="done"
 			exit 0
 		done
+
+							
+	elif [  "$x" ==  "s" ]; then
+		secureelk
+
 							
 	elif [  "$x" ==  "t" ]; then
 		testcode
