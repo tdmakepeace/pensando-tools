@@ -20,7 +20,7 @@
 ###  command:
 ###
 ###
-### wget -O Install_pensando_tools  https://raw.githubusercontent.com/tdmakepeace/pensando-tools/refs/heads/main/Install_pensando_tools.sh && chmod +x Install_pensando_tools  &&  ./Install_pensando_tools###
+### wget -O Install_pensando_tools.sh  https://raw.githubusercontent.com/tdmakepeace/pensando-tools/refs/heads/main/Install_pensando_tools.sh && chmod +x Install_pensando_tools.sh  &&  ./Install_pensando_tools.sh###
 ### 
 ###
 ###	Licensed under the Apache License, Version 2.0 (the "License");
@@ -256,11 +256,7 @@ brokerdockerup()
 		
 elk()
 {
-	if [ ! -d "$rootfolder" ]; then
-	  sudo mkdir -p $rootfolder
-		sudo chown $real_user:$real_user $rootfolder
-		sudo chmod 777 $rootfolder
-	fi
+	check_rootfolder_permissions
 	cd /$rootfolder/
 	git clone $elkgitlocation
 	
