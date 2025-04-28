@@ -114,7 +114,7 @@ elkdockerupnote()
 
 		clear
 		echo "Access the ELK Stack application in a browser from the following URL: "
-		echo -e "\e[0;31mhttps://$localip:5601\n\e[0m"
+		echo -e "\e[0;31mhttp://$localip:5601\n\e[0m"
 				
 		echo -e "Allow 5 minutes for all the service to come up before you attempting to access the Kibana dashboards. \n" | fold -w 80 -s
 		read -p "Services setup. Press enter to continue..."
@@ -257,6 +257,7 @@ brokerdockerup()
 elk()
 {
 	check_rootfolder_permissions
+	
 	cd /$rootfolder/
 	git clone $elkgitlocation
 	
@@ -318,6 +319,53 @@ elk()
 	echo -e "\e[0;31mGo and make a cup of Tea \nThis is going to take time to install and setup  \n\e[0m"
 					
 	
+}
+
+secureelk()
+{
+		echo "Do you wish to enable ELK stack security for Kibana.
+This is done as http only - if you wish to use https - refer to the ELK documentation"
+	
+	echo ""
+	echo -e " This will take about 5 minutes"
+	echo ""
+	
+		read -p "[Y]es or [N}o " p
+
+		p=${p,,}
+
+  	if  [[ "$p" == "y" ]]; then
+  		cd /$rootfolder/$elkbasefolder/
+  		docker compose down
+  		
+			export elkpass=$(< /dev/urandom tr -dc 'A-Za-z0-9' | head -c11)
+			export kibpass=$(< /dev/urandom tr -dc 'A-Za-z0-9' | head -c11)
+			
+			
+			cd logstash
+			sed -i.bak 's/hosts[[:space:]]*=>[[:space:]]*\[ '\''elasticsearch'\'' \]/hosts    => [ '\''elasticsearch'\'' ]\n    user => '\"'elastic'\"' \n    password => '\"$elkpass\"' /' dss_syslog.conf
+
+			cd ..
+			cp docker-compose.yml docker-compose.yml.nosecure
+			cp ~/ELK/docker-compose.yml.secureexample docker-compose.yml
+			sed -i.bak 's/changeme/'$elkpass'/' docker-compose.yml
+			sed -i.bak 's/kibana_system_pass/'$kibpass'/' docker-compose.yml
+			sleep 2
+
+			docker compose up --detach --build
+			sleep 120 
+			echo " Enter the following password into the password reset for Kibana_system : $kibpass"
+			docker exec -it pensando-elasticsearch /usr/share/elasticsearch/bin/elasticsearch-reset-password -i -u kibana_system 
+
+			curl -u elastic:$elkpass -X POST "http://localhost:9200/_security/user/admin?pretty" -H 'Content-Type: application/json' -d'{  "password" : "Pensando0$",  "roles" : [ "superuser" ],  "full_name" : "ELK Admin",  "email" : "admin@example.com"}'
+
+
+			elkdockerupnote
+ 
+ 		elif  [ "$p" == "n" ]; then
+ 			elkdockerupnote
+		fi
+		 
 }
 
 elkdockerdown()
@@ -499,8 +547,7 @@ elkdockerup()
 		echo -e "\e[1;33mFinishing import  \n\e[0m"									
 		
 		sleep 20	
-
-
+		
 }
 
 proxy()
@@ -669,10 +716,8 @@ testcode()
 		echo " 
 		Space for testing
 					"
-					
-		echo -e "\e[0;31mMake sure you logout and then log back in to make use of the new enviromental variables  \n\e[0m"
-		echo -e "\e[0;31mOnce logged back in, change directory to: \e[1;33m/$rootfolder/$brokerbasefolder/ \e[0;31mThen run the followeing docker command:\n \e[1;33mdocker compose up -d \n\e[0m"			
-					
+		secureelk 
+		
 }
 
 while true ;
@@ -728,7 +773,7 @@ If the ELK Stack is already deployed and needs to be updated, select [U] to run 
 			elknote
 			elk 
 			elkdockerup
-			elkdockerupnote
+			secureelk
 			x="done"
 			exit 0
 		done
