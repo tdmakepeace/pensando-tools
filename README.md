@@ -52,6 +52,15 @@ If you have an ElastiFlow license key to be used for the deployed application, e
 The script will then begin the deployment process for the ELK Stack components, downloading and deploying each component (Elasticsearch, Logstash, Kibana, and the ElastiFlow flow collector) as Docker containers, then applying configuration files to enable data collection and display for CX switches.
 
 
+### Using ELK Security
+By default we do not enable the ELK security stack, due to the requirement for certifacte management.
+If you do require to enable security please refer to the Elastic documentation on the setting up of https and the security feature xpack.
+If you are happy to use http only, then option **"s"** will enable user based login.
+
+The default admin user and password the script will setup is: **"admin/Pensando0$"**
+options about the user management and roles are available on the Elastic website
+
+
 ## Deploying the Broker Stack platform
 
 To deploy the Broker Stack using this repository, first ensure that you are running an Ubuntu server instance (20.04, 22.04, or 24.04). If the installation procedure will be done remotely, ensure that OpenSSH is installed and functioning normally.
@@ -71,7 +80,7 @@ If proxy server configuration is required, select option **"p"** when prompted, 
 To start base system preparation select option **"b"**. This will:
 
 1. Update installed operating system software packages to the latest available versions
-2. Install all prerequisites and dependencies for Docker and the ELK Stack components
+2. Install all prerequisites and dependencies for Docker and the Broker Stack components
 
 This process will take several minutes, during which there may be little to no console output or visible activity; do not interrupt the script, as this may leave the system in an unexpected state. Once base system preparation is complete, the system will automatically reboot.
 
