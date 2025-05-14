@@ -226,7 +226,7 @@ base()
 				sudo systemctl enable --now docker
 				sudo yum install -y git
 				sudo usermod -aG docker $real_user
-				sudo dnf install python3.12
+				sudo dnf install -y python3.12
 				sudo ln -sfn /usr/bin/python3.12 /usr/bin/python3
 				
 
@@ -240,7 +240,7 @@ base()
 				sudo yum install -y git
 				sudo usermod -aG docker $real_user
 				
-				sudo dnf install python3.12
+				sudo dnf install -y python3.12
 				sudo ln -sfn /usr/bin/python3.12 /usr/bin/python3
 			
 			fi
