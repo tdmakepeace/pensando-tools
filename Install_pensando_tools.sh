@@ -192,7 +192,10 @@ base()
 			sudo NEEDRESTART_SUSPEND=1 apt-get dist-upgrade --yes 
 			
 			version=` more /etc/os-release |grep VERSION_ID | cut -d \" -f 2`
-			if  [ "$version" == "24.04" ]; then
+			if  [ "$version" == "25.04" ]; then
+	# Ubuntu 25.04
+				sudo NEEDRESTART_SUSPEND=1 apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin python3.13-venv tmux python3-pip python3-venv kcat --yes 
+	  	elif [ "$version" == "24.04" ]; then
 	# Ubuntu 24.04
 				sudo NEEDRESTART_SUSPEND=1 apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin python3.12-venv tmux python3-pip python3-venv kcat --yes 
 
@@ -209,16 +212,39 @@ base()
 			sudo usermod -aG docker $real_user
 	
 	elif [ "$os" == "Red" ]; then
-		
-			echo " still to be written 	"
-			check_rootfolder_permissions
-			sudo dnf -y install dnf-plugins-core
-			sudo dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
-			sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin kcat
-			sudo systemctl enable --now docker
-			sudo yum install -y git
-			sudo usermod -aG docker $real_user
+
+			version=` more /etc/os-release |grep VERSION_ID | cut -d \" -f 2`
+			if  [ "$version" == "9.5" ]; then
+			# Redhat 9.5
+	
+				check_rootfolder_permissions
+				sudo dnf -y install dnf-plugins-core
+				sudo dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
+				sudo subscription-manager repos --enable codeready-builder-for-rhel-9-$(arch)-rpms
+				sudo dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm -y
+				sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin kcat
+				sudo systemctl enable --now docker
+				sudo yum install -y git
+				sudo usermod -aG docker $real_user
+				sudo dnf install python3.12
+				sudo ln -sfn /usr/bin/python3.12 /usr/bin/python3
+				
+
+			else
 			
+				check_rootfolder_permissions
+				sudo dnf -y install dnf-plugins-core
+				sudo dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
+				sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin kcat
+				sudo systemctl enable --now docker
+				sudo yum install -y git
+				sudo usermod -aG docker $real_user
+				
+				sudo dnf install python3.12
+				sudo ln -sfn /usr/bin/python3.12 /usr/bin/python3
+			
+			fi
+					
 	fi 
 	
 }
