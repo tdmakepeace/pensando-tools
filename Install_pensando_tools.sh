@@ -254,6 +254,20 @@ broker()
 	check_rootfolder_permissions
 	cd /$rootfolder/
 	git clone $brokergitlocation
+	
+	
+	clear 
+	`git branch --all | cut -d "/" -f3 > gitversion.txt`
+	echo -e "\e[0;31mEnter a line number to select a branch:\n\e[0m"
+
+	git branch --all | cut -d "/" -f3 |grep -n ''
+
+	read x
+	brokerver=`sed "$x,1!d" gitversion.txt`
+	git checkout  $brokerver
+	echo $brokerver >installedversion.txt
+	
+	
 	sleep 2
 	cd $brokerbasefolder/
 	/$rootfolder/$brokerbasefolder/setup
