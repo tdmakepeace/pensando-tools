@@ -255,7 +255,7 @@ broker()
 	cd /$rootfolder/
 	git clone $brokergitlocation
 	
-	
+	cd $brokerbasefolder
 	clear 
 	`git branch --all | cut -d "/" -f3 > gitversion.txt`
 	echo -e "\e[0;31mEnter a line number to select a branch:\n\e[0m"
