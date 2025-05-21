@@ -504,7 +504,6 @@ elkdockerup()
 		
 		if [ "$installedversion" == "aoscx_10.13" ]; then 
 				
-				sleep 100
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_index_template/pensando-fwlog?pretty' -d @./elasticsearch/pensando_fwlog_mapping.json
 				echo -e "\e[1;33mImporting the Kibana dashboards and maintainence plans  \n\e[0m"
 					
@@ -518,7 +517,6 @@ elkdockerup()
 				
 		elif [ "$installedversion" == "aoscx_10.13.1000" ]; then 
 				
-				sleep 100
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_index_template/pensando-fwlog?pretty' -d @./elasticsearch/pensando_fwlog_mapping.json
 
 				echo -e "\e[1;33mImporting the Kibana dashboards and maintainence plans  \n\e[0m"
@@ -531,7 +529,6 @@ elkdockerup()
 				
 		elif [ "$installedversion" == "aoscx_10.14" ]; then 
 				
-				sleep 100
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_index_template/pensando-fwlog?pretty' -d @./elasticsearch/pensando_fwlog_mapping.json
 				echo -e "\e[1;33mImporting the Kibana dashboards and maintainence plans  \n\e[0m"
 									
@@ -544,7 +541,6 @@ elkdockerup()
 				
 		elif [ "$installedversion" == "aoscx_10.14.0001" ]; then 
 				
-				sleep 100
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_index_template/pensando-fwlog?pretty' -d @./elasticsearch/pensando_fwlog_mapping.json
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_snapshot/my_fs_backup' -d @./elasticsearch/pensando_fs.json
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_slm/policy/pensando' -d @./elasticsearch/pensando_slm.json
@@ -561,7 +557,6 @@ elkdockerup()
 				
 		elif [ "$installedversion" == "aoscx_10.15" ]; then 
 				
-				sleep 100
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_index_template/pensando-fwlog?pretty' -d @./elasticsearch/pensando_fwlog_mapping.json
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_snapshot/my_fs_backup' -d @./elasticsearch/pensando_fs.json
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_slm/policy/pensando' -d @./elasticsearch/pensando_slm.json
@@ -578,7 +573,6 @@ elkdockerup()
 				
 		elif [ "$installedversion" == "main" ]; then 
 			
-				sleep 100
 				curl -X DELETE 'http://localhost:9200/localhost:9200/_index_template/pensando-fwlog' 
 				curl -X DELETE 'http://localhost:9200/_slm/policy/pensando'
 				curl -X DELETE 'http://localhost:9200/_ilm/policy/pensando' 
@@ -608,7 +602,6 @@ elkdockerup()
 			
 		elif [ "$installedversion" == "develop" ]; then 
 			
-				sleep 100
 				curl -X DELETE 'http://localhost:9200/localhost:9200/_index_template/pensando-fwlog' 
 				curl -X DELETE 'http://localhost:9200/_slm/policy/pensando'
 				curl -X DELETE 'http://localhost:9200/_ilm/policy/pensando' 
