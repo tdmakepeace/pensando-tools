@@ -307,7 +307,13 @@ elk()
 	git branch --all | cut -d "/" -f3 |grep -n ''
 
 	read x
-	elkver=`sed "$x,1!d" gitversion.txt`
+	if [ "$x" == 1 ]; then
+		elkver=`sed "$x,1!d" gitversion.txt | cut -d " " -f2`
+	else 
+		elkver=`sed "$x,1!d" gitversion.txt`	
+	fi
+	
+
 	git checkout  $elkver
 	echo $elkver >installedversion.txt
 			
@@ -824,7 +830,7 @@ Workflows provided by this script will:
 
 If this is your first time running this script on this system, select [B] to start the base system preparation workflow, which will end with a system reboot; once the system is up and running again, execute this script a second time from the local directory to continue with the deployment process.
 
-NOTE: If a proxy server is required for this system to connect to the internet, select [P] to run the proxy server configuration workflow prior to starting base system preparation. \e[1;33mCurrently Ubuntu only \n\e[0m
+NOTE: If a proxy server is required for this system to connect to the internet, select [P] to run the proxy server configuration workflow prior to starting base system preparation. \e[1;33mCurrently Ubuntu only and RHEL 9.5 \n\e[0m
 
 Once the base system preparation and reboot have been completed: \nselect [E] to run the ELK Stack deployment workflow.\nselect [R] to run the Broker deployment workflow.\nselect [U] to run and ELK Stack upgrade workflow.\nselect [S] to setup username and password management for ELK\n
 
