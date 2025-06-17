@@ -282,13 +282,14 @@ broker()
 brokerdockerup()
 {		
 		cd /$rootfolder/$brokerbasefolder/
-	echo -e "Starting Broker containers\n"
-					
-		sleep 10 
-				
-		docker compose up --detach
-		sleep 10 
+		echo -e "Starting Broker containers\n"
 		
+		docker compose up --detach
+		sleep 30
+		echo -e "configuring the workload topic\n" 
+		docker exec -it kafka bash -c "kafka-configs --bootstrap-server localhost:9092 \
+    --alter --entity-type topics --entity-name table.pensando.otto.workload \
+    --add-config cleanup.policy=compact,retention.ms=1000,delete.retention.ms=1000,max.compaction.lag.ms=60000,segment.ms=60000"
 				
 				
 }
@@ -377,7 +378,6 @@ elksecurefile()
 		sed -i '/- node.name=es01/d' docker-compose.yml
 		sed -i.bak "s/- xpack.security.enabled=false/- discovery.type=single-node\n      - xpack.security.enabled=true\n      - ELASTIC_PASSWORD=changeme/" docker-compose.yml
 		sed -i.bak "s/pensando-kibana/pensando-kibana\n    environment:\n      - ELASTICSEARCH_HOSTS=http:\/\/elasticsearch:9200\n      - ELASTICSEARCH_USERNAME=kibana_system\n      - ELASTICSEARCH_PASSWORD=kibana_system_pass\n      - xpack.security.enabled=true/" docker-compose.yml
-		sed -i.bak  "s/pensando-logstash/pensando-logstash\n    environment:\n      - DICT_FILE= \{DICT_FILE\}/" docker-compose.yml
 	else
 	echo -e "\e[0;31mdocker compose with xpack already set up\e[0m\n check the config files"
 	fi
@@ -837,8 +837,9 @@ Once the base system preparation and reboot have been completed: \nselect [E] to
 
 If the ELK Stack is already deployed and needs to be updated, select [U] to run the update workflow.\n" | fold -w 120 -s
 	
-	read -p "[B]ase system preparation, [E]LK Stack deployment, B[R]oker deployment, [U]pdate ELK, 
+	read -p "[B]ase system preparation, [E]LK Stack deployment, B[R]oker deployment, Broker [F]irst run, [U]pdate ELK, 
 [S]ecure - Add username and password, [P]roxy configuration, or e[X]it: " x
+
 
   x=${x,,}
   
@@ -916,7 +917,8 @@ If the ELK Stack is already deployed and needs to be updated, select [U] to run 
 			x="done"
 			exit 0
 		done
-
+	elif [  "$x" ==  "f" ]; then
+		brokerdockerup
 							
 	elif [  "$x" ==  "s" ]; then
 		secureelk
