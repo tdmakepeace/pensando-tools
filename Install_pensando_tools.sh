@@ -269,13 +269,14 @@ broker()
 	
 	
 	sleep 2
-	cd $brokerbasefolder/
+
 	/$rootfolder/$brokerbasefolder/setup
 	
 	
-		echo -e "\e[0;31mMake sure you logout and then log back in to make use of the new enviroment variables.  \n\e[0m"
-		echo -e "\e[0;31mOnce logged back in, change directory to: \e[1;33m/$rootfolder/$brokerbasefolder/ \e[0;31m\n\n"
-		echo -e "Then run the following docker command:\n \e[1;33mdocker compose up -d \n\e[0m"			
+		echo -e "\e[0;31mMake sure you logout and then log back in to make use of the new enviromental variables  \n\e[0m"
+		echo -e "\e[0;31mOnce logged back in, re-run the install_pensando_tools.sh, and choose the first option (F): \e[1;33mFirst Run Broker \e[0;31m
+\nThis will start the broker, and configure the topic.\n\e[1;33mIf you choose to do a (docker compose up -d) instead then you will need to set the following option on the workload topic \n\e[0m 
+\ncleanup.policy=compact\nretention.ms=1000\ndelete.retention.ms=1000\nmax.compaction.lag.ms=60000\nsegment.ms=60000\n"	
 		
 }
 
@@ -919,9 +920,11 @@ If the ELK Stack is already deployed and needs to be updated, select [U] to run 
 		done
 	elif [  "$x" ==  "f" ]; then
 		brokerdockerup
+		exit 0
 							
 	elif [  "$x" ==  "s" ]; then
 		secureelk
+		exit 0
 
 							
 	elif [  "$x" ==  "t" ]; then
