@@ -214,8 +214,8 @@ base()
 	elif [ "$os" == "Red" ]; then
 
 			version=` more /etc/os-release |grep VERSION_ID | cut -d \" -f 2`
-			if  [ "$version" == "9.5" ]; then
-			# Redhat 9.5
+			if  [ "$version" == "9.5" ] || [ "$version" == "9.6" ] ; then
+			# Redhat 9.5 / 9.6
 	
 				check_rootfolder_permissions
 				sudo dnf -y install dnf-plugins-core
@@ -832,7 +832,7 @@ Workflows provided by this script will:
 
 If this is your first time running this script on this system, select [B] to start the base system preparation workflow, which will end with a system reboot; once the system is up and running again, execute this script a second time from the local directory to continue with the deployment process.
 
-NOTE: If a proxy server is required for this system to connect to the internet, select [P] to run the proxy server configuration workflow prior to starting base system preparation. \e[1;33mCurrently Ubuntu only and RHEL 9.5 \n\e[0m
+NOTE: If a proxy server is required for this system to connect to the internet, select [P] to run the proxy server configuration workflow prior to starting base system preparation. \e[1;33mCurrently Ubuntu only and RHEL 9.5/9.6  \n\e[0m
 
 Once the base system preparation and reboot have been completed: \nselect [E] to run the ELK Stack deployment workflow.\nselect [R] to run the Broker deployment workflow.\nselect [U] to run and ELK Stack upgrade workflow.\nselect [S] to setup username and password management for ELK\n
 
