@@ -292,7 +292,9 @@ brokerdockerup()
     --alter --entity-type topics --entity-name table.pensando.otto.workload \
     --add-config cleanup.policy=compact,retention.ms=1000,delete.retention.ms=1000,max.compaction.lag.ms=60000,segment.ms=60000"
 				
-				
+		cd /$rootfolder/$brokerbasefolder/bin
+		restart-workload-collect
+		cd /$rootfolder/$brokerbasefolder/
 }
 		
 elk()
