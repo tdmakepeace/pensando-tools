@@ -286,6 +286,8 @@ brokerdockerup()
 		echo -e "Starting Broker containers\n"
 		
 		docker compose up --detach
+		echo -e "\e[0;31mPlease be patient, we have a 60 second delay on the bring up to make sure everything is up.\e[0m"
+		
 		sleep 30
 		echo -e "configuring the workload topic\n" 
 		docker exec -it kafka bash -c "kafka-configs --bootstrap-server localhost:9092 \
@@ -295,6 +297,7 @@ brokerdockerup()
 		cd /$rootfolder/$brokerbasefolder/bin
 		restart-workload-collect
 		cd /$rootfolder/$brokerbasefolder/
+		echo -e "\e[0;31mRun \"docker ps to confirm everything is running\"\e[0m"
 }
 		
 elk()
