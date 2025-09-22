@@ -288,12 +288,12 @@ brokerdockerup()
 		docker compose up --detach
 		echo -e "\e[0;31mPlease be patient, we have a 60 second delay on the bring up to make sure everything is up.\e[0m"
 		
-		sleep 50
+		sleep 40
 		echo -e "configuring the workload topic\n" 
 		cd /$rootfolder/$brokerbasefolder/bin
 		restart-workload-collect
 		cd /$rootfolder/$brokerbasefolder/
-		sleep 10
+		sleep 20
 		docker exec -it kafka bash -c "kafka-configs --bootstrap-server localhost:9092 \
     --alter --entity-type topics --entity-name table.pensando.otto.workload \
     --add-config cleanup.policy=compact,retention.ms=1000,delete.retention.ms=1000,max.compaction.lag.ms=60000,segment.ms=60000"
