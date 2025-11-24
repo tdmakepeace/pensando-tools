@@ -145,3 +145,6 @@ data/es_backups/
 
 # Toby UltraEdit
 *.bak
+
+# Snyk Security Extension - AI Rules (auto-generated)
+.cursor/rules/snyk_rules.mdc
