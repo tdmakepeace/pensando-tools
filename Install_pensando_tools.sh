@@ -4,48 +4,48 @@
 ###
 ### This script installs and configures a selection of AMD tools to support the AMD Pensnado DPU
 ### Options for the ELK  or Broker service are the currently available.
-### 
+###
 ### Current support is for Ubuntu 20.04/22.04/24.04 server install or Entreprise Redhat.
 ### The only specific prerequisite for running this script is OpenSSH.
 ###
-### A static IP configuration is strongly recommended, with either single or 
+### A static IP configuration is strongly recommended, with either single or
 ###  dual network interfaces.
 ###
-### This should be run as the non-root user account created during Ubuntu server 
+### This should be run as the non-root user account created during Ubuntu server
 ### installation, and utilizes sudo during the deployment process.
 ###
-### Based on the original script hosted at: https://github.com/tdmakepeace/ELK_Single_script 
+### Based on the original script hosted at: https://github.com/tdmakepeace/ELK_Single_script
 ###
-### To start this script from an Ubuntu server instance, run the following 
+### To start this script from an Ubuntu server instance, run the following
 ###  command:
 ###
 ###
 ### wget -O Install_pensando_tools.sh  https://raw.githubusercontent.com/tdmakepeace/pensando-tools/refs/heads/main/Install_pensando_tools.sh && chmod +x Install_pensando_tools.sh  &&  ./Install_pensando_tools.sh###
-### 
+###
 ###
 ###	Licensed under the Apache License, Version 2.0 (the "License");
 ### you may not use this file except in compliance with the License.
 ### You may obtain a copy of the License at
-### 
+###
 ###     http://www.apache.org/licenses/LICENSE-2.0
-### 
+###
 ### Unless required by applicable law or agreed to in writing, software
 ### distributed under the License is distributed on an "AS IS" BASIS,
 ### WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 ### See the License for the specific language governing permissions and
 ### limitations under the License.
 
-###	
+###
 
 
 ### ELK Note:
-### The recommended and supported ELK version is 8.16.1, this is the last comunitiy version published before they changed the licencing for 
+### The recommended and supported ELK version is 8.16.1, this is the last comunitiy version published before they changed the licencing for
 ### a number of features used in the Kibana dashboard.
 
 ### gitlocation base folder and root folder are all editable if you have already installed the ELK stack or broker.
 ### however these are expectd to be the defaults going forwrd.
 
-### variables can be edited. 
+### variables can be edited.
 
 ELK="TAG=8.16.1"
 elkgitlocation="https://github.com/amd/pensando-elk.git"
@@ -54,14 +54,14 @@ brokergitlocation="https://gitlab.com/pensando/tbd/APB/apb.git"
 brokerbasefolder="apb"
 
 
-rootfolder="pensandotools"
+rootfolder="/opt/amd/ncoe"
 
 ###  main code area should not be modified.
-	
+
 rebootserver()
 {
 		echo -e "\e[0;31mRebooting the system...\n\e[0m"
-		
+
 		sleep 5
 		sudo reboot
 		sleep 10
@@ -70,9 +70,9 @@ rebootserver()
 
 updates()
 {
-		
-		sudo apt-get update 
-		sudo NEEDRESTART_SUSPEND=1 apt-get dist-upgrade --yes 
+
+		sudo apt-get update
+		sudo NEEDRESTART_SUSPEND=1 apt-get dist-upgrade --yes
 
 		sleep 10
 }
@@ -81,7 +81,7 @@ updatesred()
 {
 		subscription-manager attach --auto
 		subscription-manager repos
-		sudo yum update -y -q 
+		sudo yum update -y -q
 
 		sleep 10
 }
@@ -89,15 +89,15 @@ updatesred()
 
 basenote()
 {
-		## Update all the base image of Ubuntu before we progress. 
+		## Update all the base image of Ubuntu before we progress.
 		## then installs all the dependencies and sets up the permissions for Docker
 		clear
 		echo -e "\nThis script will run unattended for 5-10 minutes to do the base setup of the server enviroment ready for any of the AMD Pensando tools.  It might appear to have paused, but leave it until the host reboots.\n
 It is recommended to be a static IP configuration.\n" | fold -w 80 -s
 
 	echo -e "\e[1;33mPress Ctrl+C to exit if you need to configure a static IP address, then run this script again.\n\e[0m"
-  
-  
+
+
 		read -p "Press enter to continue...."
 }
 
@@ -114,15 +114,15 @@ elkdockerupnote()
 
 		echo "Access the ELK Stack application in a browser from the following URL: "
 		echo -e "\e[0;31mhttp://$localip:5601\n\e[0m"
-				
+
 		echo -e "Allow 5 minutes for all the service to come up before you attempting to access the Kibana dashboards. \n" | fold -w 80 -s
 		read -p "Services setup. Press enter to continue..."
-		exit 0	
+		exit 0
 }
 
 brokernote()
 {
-	clear 
+	clear
 	localip=`hostname -I | cut -d " " -f1`
 	echo -e "\nThis workflow requires input to link the broker to PSM, and will then run unattended to deploy and configure the broker components.\n" | fold -w 80 -s
 	echo -e "Please do not interrupt the script during this process, to avoid leaving the application in a partially-deployed state.\n" | fold -w 80 -s
@@ -135,12 +135,10 @@ brokernote()
 create_rootfolder()
 {
 	real_user=$(whoami)
-	cd /
-	sudo mkdir $rootfolder
+	sudo mkdir -p $rootfolder
 	sudo chown $real_user:$real_user $rootfolder
 	sudo chmod 777 $rootfolder
-	mkdir -p /$rootfolder/
-	mkdir -p /$rootfolder/scripts
+	mkdir -p $rootfolder/scripts
 }
 
 check_rootfolder_permissions()
@@ -149,24 +147,24 @@ check_rootfolder_permissions()
     real_user=$(whoami)
 
 	# Check if the rootfolder exists
-	echo "Checking if $rootfoler exists"
-    if [ -d "/$rootfolder" ]; then
+	echo "Checking if $rootfolder exists"
+    if [ -d "$rootfolder" ]; then
         # Check if the directory is writable by the current user
-        if [ -w "/$rootfolder" ]; then
-            echo "/$rootfolder exists and is writable by $real_user"
+        if [ -w "$rootfolder" ]; then
+            echo "$rootfolder exists and is writable by $real_user"
         else
-            echo "/$rootfolder exists but is not writable by $real_user, changing ownership"
-            sudo chown $real_user:$real_user "/$rootfolder"
+            echo "$rootfolder exists but is not writable by $real_user, changing ownership"
+            sudo chown $real_user:$real_user "$rootfolder"
             # Verify the change was successful
-            if [ -w "/$rootfolder" ]; then
-                echo "Successfully changed ownership of /$rootfolder to $real_user"
+            if [ -w "$rootfolder" ]; then
+                echo "Successfully changed ownership of $rootfolder to $real_user"
             else
-                echo "Failed to make /$rootfolder writable by $real_user"
+                echo "Failed to make $rootfolder writable by $real_user"
                 return 1
             fi
         fi
     else
-        echo "/$rootfolder does not exist, creating it"
+        echo "$rootfolder does not exist, creating it"
         create_rootfolder
     fi
 }
@@ -178,45 +176,45 @@ base()
 
 
 	os=`more /etc/os-release |grep PRETTY_NAME | cut -d  \" -f2 | cut -d " " -f1`
-	if [ "$os" == "Ubuntu" ]; then 
+	if [ "$os" == "Ubuntu" ]; then
 			updates
 			check_rootfolder_permissions
 
 			sudo mkdir -p /etc/apt/keyrings
-			sudo  NEEDRESTART_SUSPEND=1 apt-get install curl gnupg ca-certificates lsb-release --yes 
+			sudo  NEEDRESTART_SUSPEND=1 apt-get install curl gnupg ca-certificates lsb-release --yes
 			sudo mkdir -p /etc/apt/keyrings
-			curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg  
-			
+			curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
 			sudo echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 			sudo apt-get update --allow-insecure-repositories
-			sudo NEEDRESTART_SUSPEND=1 apt-get dist-upgrade --yes 
-			
+			sudo NEEDRESTART_SUSPEND=1 apt-get dist-upgrade --yes
+
 			version=` more /etc/os-release |grep VERSION_ID | cut -d \" -f 2`
 			if  [ "$version" == "25.04" ]; then
 	# Ubuntu 25.04
-				sudo NEEDRESTART_SUSPEND=1 apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin python3.13-venv tmux python3-pip python3-venv kcat --yes 
+				sudo NEEDRESTART_SUSPEND=1 apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin python3.13-venv tmux python3-pip python3-venv kcat --yes
 	  	elif [ "$version" == "24.04" ]; then
 	# Ubuntu 24.04
-				sudo NEEDRESTART_SUSPEND=1 apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin python3.12-venv tmux python3-pip python3-venv kcat --yes 
+				sudo NEEDRESTART_SUSPEND=1 apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin python3.12-venv tmux python3-pip python3-venv kcat --yes
 
 	  	elif [ "$version" == "22.04" ]; then
 	# Ubuntu 22.04
-				sudo NEEDRESTART_SUSPEND=1 apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin python3.11-venv tmux python3-pip python3-venv kafkacat --yes 
+				sudo NEEDRESTART_SUSPEND=1 apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin python3.11-venv tmux python3-pip python3-venv kafkacat --yes
 	  	elif [ "$version" == "20.04" ]; then
 	# Ubuntu 20.04
-				sudo NEEDRESTART_SUSPEND=1 apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin python3.9-venv tmux python3-pip python3-venv kafkacat --yes 
+				sudo NEEDRESTART_SUSPEND=1 apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin python3.9-venv tmux python3-pip python3-venv kafkacat --yes
 	   	else
-	  		sudo NEEDRESTART_SUSPEND=1 apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin python3.8-venv tmux python3-pip python3-venv kafkacat --yes 
+	  		sudo NEEDRESTART_SUSPEND=1 apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin python3.8-venv tmux python3-pip python3-venv kafkacat --yes
 	   	fi
 
 			sudo usermod -aG docker $real_user
-	
+
 	elif [ "$os" == "Red" ]; then
 
 			version=` more /etc/os-release |grep VERSION_ID | cut -d \" -f 2`
 			if  [ "$version" == "9.5" ] || [ "$version" == "9.6" ] ; then
 			# Redhat 9.5 / 9.6
-	
+
 				check_rootfolder_permissions
 				sudo dnf -y install dnf-plugins-core
 				sudo dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
@@ -228,10 +226,10 @@ base()
 				sudo usermod -aG docker $real_user
 				sudo dnf install -y python3.12
 				sudo ln -sfn /usr/bin/python3.12 /usr/bin/python3
-				
+
 
 			else
-			
+
 				check_rootfolder_permissions
 				sudo dnf -y install dnf-plugins-core
 				sudo dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
@@ -239,24 +237,24 @@ base()
 				sudo systemctl enable --now docker
 				sudo yum install -y git
 				sudo usermod -aG docker $real_user
-				
+
 				sudo dnf install -y python3.12
 				sudo ln -sfn /usr/bin/python3.12 /usr/bin/python3
-			
+
 			fi
-					
-	fi 
-	
+
+	fi
+
 }
 
 broker()
 {
 	check_rootfolder_permissions
-	cd /$rootfolder/
+	cd $rootfolder/
 	git clone $brokergitlocation
-	
+
 	cd $brokerbasefolder
-	clear 
+	clear
 	`git branch --all | cut -d "/" -f3 > gitversion.txt`
 	echo -e "\e[0;31mEnter a line number to select a branch:\n\e[0m"
 
@@ -266,50 +264,50 @@ broker()
 	brokerver=`sed "$x,1!d" gitversion.txt`
 	git checkout  $brokerver
 	echo $brokerver >installedversion.txt
-	
-	
+
+
 	sleep 2
 
-	/$rootfolder/$brokerbasefolder/setup
-	
-	
+	$rootfolder/$brokerbasefolder/setup
+
+
 		echo -e "\e[0;31mMake sure you logout and then log back in to make use of the new enviromental variables  \n\e[0m"
 		echo -e "\e[0;31mOnce logged back in, re-run the install_pensando_tools.sh, and choose the first option (F): \e[1;33mFirst Run Broker \e[0;31m
-\nThis will start the broker, and configure the topic.\n\e[1;33mIf you choose to do a (docker compose up -d) instead then you will need to set the following option on the workload topic \n\e[0m 
-\ncleanup.policy=compact\nretention.ms=1000\ndelete.retention.ms=1000\nmax.compaction.lag.ms=60000\nsegment.ms=60000\n"	
-		
+\nThis will start the broker, and configure the topic.\n\e[1;33mIf you choose to do a (docker compose up -d) instead then you will need to set the following option on the workload topic \n\e[0m
+\ncleanup.policy=compact\nretention.ms=1000\ndelete.retention.ms=1000\nmax.compaction.lag.ms=60000\nsegment.ms=60000\n"
+
 }
 
 brokerdockerup()
-{		
-		cd /$rootfolder/$brokerbasefolder/
+{
+		cd $rootfolder/$brokerbasefolder/
 		echo -e "Starting Broker containers\n"
-		
+
 		docker compose up --detach
 		echo -e "\e[0;31mPlease be patient, we have a 60 second delay on the bring up to make sure everything is up.\e[0m"
-		
+
 		sleep 40
-		echo -e "configuring the workload topic\n" 
-		cd /$rootfolder/$brokerbasefolder/bin
+		echo -e "configuring the workload topic\n"
+		cd $rootfolder/$brokerbasefolder/bin
 		restart-workload-collect
-		cd /$rootfolder/$brokerbasefolder/
+		cd $rootfolder/$brokerbasefolder/
 		sleep 20
 		docker exec -it kafka bash -c "kafka-configs --bootstrap-server localhost:9092 \
     --alter --entity-type topics --entity-name table.pensando.otto.workload \
     --add-config cleanup.policy=compact,retention.ms=1000,delete.retention.ms=1000,max.compaction.lag.ms=60000,segment.ms=60000"
-				
+
 
 		echo -e "\e[0;31mRun \"docker ps\" to confirm everything is running\e[0m"
 }
-		
+
 elk()
 {
 	check_rootfolder_permissions
-	cd /$rootfolder/
+	cd $rootfolder/
 	git clone $elkgitlocation
-	
-	cd /$rootfolder/$elkbasefolder
-	clear 
+
+	cd $rootfolder/$elkbasefolder
+	clear
 	`git branch --all | cut -d "/" -f3 > gitversion.txt`
 	echo -e "\e[0;31mEnter a line number to select a branch:\n\e[0m"
 
@@ -318,14 +316,14 @@ elk()
 	read x
 	if [ "$x" == 1 ]; then
 		elkver=`sed "$x,1!d" gitversion.txt | cut -d " " -f2`
-	else 
-		elkver=`sed "$x,1!d" gitversion.txt`	
+	else
+		elkver=`sed "$x,1!d" gitversion.txt`
 	fi
-	
+
 
 	git checkout  $elkver
 	echo $elkver >installedversion.txt
-			
+
 	cp docker-compose.yml docker-compose.yml.orig
 	sed -i.bak  's/EF_OUTPUT_ELASTICSEARCH_ENABLE: '\''false'\''/EF_OUTPUT_ELASTICSEARCH_ENABLE: '\''true'\''/' docker-compose.yml
 	localip=`hostname -I | cut -d " " -f1`
@@ -334,11 +332,11 @@ elk()
 	sed -i.bak -r "s/#EF_OUTPUT_ELASTICSEARCH_INDEX_PERIOD: 'daily'/EF_OUTPUT_ELASTICSEARCH_INDEX_PERIOD: 'daily'/" docker-compose.yml
 
 	echo "Do you want to install a Elastiflow licence.
-	
+
 	Yes (y) and No (n) "
 	echo "y or n "
 	read x
-  
+
   clear
 
 	if  [ "$x" == "y" ]; then
@@ -346,41 +344,41 @@ elk()
 		read a
 		echo -e "\e[1;33mEnter the license key:\n\e[0m"
 		read b
-		
+
 		sed -i.bak -r "s/#EF_ACCOUNT_ID: ''/EF_ACCOUNT_ID: '$a'/" docker-compose.yml
 		sed -i.bak -r "s/#EF_FLOW_LICENSE_KEY: ''/EF_FLOW_LICENSE_KEY: '$b'/" docker-compose.yml
 
 	else
   	echo "Continue"
 	fi
-	
+
 	echo -e "\nJust to show you the changes we have made to the docker compose files \nIt was:\n EF_OUTPUT_ELASTICSEARCH_ENABLE: 'false'\n EF_OUTPUT_ELASTICSEARCH_ADDRESSES: 'CHANGEME:9200'\n\n Now:\n "
-			
+
 	more docker-compose.yml |egrep -i 'EF_OUTPUT_ELASTICSEARCH_ENABLE|EF_OUTPUT_ELASTICSEARCH_ADDRESSES|EF_ACCOUNT_ID|EF_FLOW_LICENSE_KEY'
 	read -p "Press enter to continue"
-	
-				
-	cd /$rootfolder/$elkbasefolder/
+
+
+	cd $rootfolder/$elkbasefolder/
 	echo $ELK >.env
 	mkdir -p data/es_backups
 	mkdir -p data/pensando_es
 	mkdir -p data/elastiflow
 	chmod -R 777 ./data
 	sudo sysctl -w vm.max_map_count=262144
-	echo vm.max_map_count=262144 | sudo tee -a /etc/sysctl.conf 
+	echo vm.max_map_count=262144 | sudo tee -a /etc/sysctl.conf
 
 	echo -e "\e[0;31mGo and make a cup of Tea \nThis is going to take time to install and setup  \n\e[0m"
-					
-	
+
+
 }
 
 elksecurefile()
 {
-	
-	cd /$rootfolder/$elkbasefolder/
+
+	cd $rootfolder/$elkbasefolder/
 
 	if grep -q "xpack.security.enabled=false" "docker-compose.yml"; then
-		cp docker-compose.yml docker-compose.yml.presec	
+		cp docker-compose.yml docker-compose.yml.presec
 
 		sed -i '/- cluster.initial_master_nodes=es01/d' docker-compose.yml
 		sed -i '/- node.name=es01/d' docker-compose.yml
@@ -391,7 +389,7 @@ elksecurefile()
 	fi
 
 
-	
+
 }
 
 elksecureup()
@@ -429,7 +427,7 @@ elksecureup()
 	sleep 1
 	clear
 	echo -e "Enter the following password into the password reset for Kibana_system :\e[0;31m $kibpass\e[0m"
-	docker exec -it pensando-elasticsearch /usr/share/elasticsearch/bin/elasticsearch-reset-password -i -u kibana_system 
+	docker exec -it pensando-elasticsearch /usr/share/elasticsearch/bin/elasticsearch-reset-password -i -u kibana_system
 	curl -u elastic:$elkpass -X POST "http://localhost:9200/_security/user/admin?pretty" -H 'Content-Type: application/json' -d'{  "password" : "Pensando0$",  "roles" : [ "superuser" ],  "full_name" : "ELK Admin",  "email" : "admin@example.com"}'
 	clear
 	echo -e " Default username and password setup is: \n\e[0;31madmin - \"Pensando0$\"\n\e[0m"
@@ -442,56 +440,56 @@ secureelk()
 	localip=`hostname -I | cut -d " " -f1`
 	echo "Do you wish to enable ELK stack security for Kibana.
 This is done as http only - if you wish to use https - refer to the ELK documentation"
-	
+
 	echo ""
 	echo -e " This will take about 5 minutes"
 	echo ""
-	
+
 		read -p "[Y]es or [N}o " p
 
 		p=${p,,}
 
   	if  [[ "$p" == "y" ]]; then
-  		cd /$rootfolder/$elkbasefolder/
+  		cd $rootfolder/$elkbasefolder/
 			if grep -q "xpack.security.enabled=true" "docker-compose.yml"; then
 				if grep -q "ELASTIC_PASSWORD=changeme" "docker-compose.yml"; then
     			docker compose down
 					elksecureup
-				else 
+				else
 					echo -e "\e[0;31mdocker compose with xpack already configured \n\e[0m"
 
-				fi 
+				fi
 			else
 				docker compose down
 				elksecurefile
 				elksecureup
 			fi
- 
+
 			elkdockerupnote
 
  		elif  [ "$p" == "n" ]; then
  			clear
  			elkdockerupnote
 		fi
-		 
+
 }
 
 elkdockerdown()
 {
-			cd /$rootfolder/$elkbasefolder/
+			cd $rootfolder/$elkbasefolder/
 			docker compose down
-			
+
 }
 
 elkdockerup()
-{		
-		cd /$rootfolder/$elkbasefolder/
+{
+		cd $rootfolder/$elkbasefolder/
 	echo -e "Starting ELK containers\n"
-					
-		sleep 10 
-				
+
+		sleep 10
+
 		docker compose up --detach
-		
+
 	echo -e "Waiting 100 seconds for services to start before configuration import...\n" | fold -w 80 -s
 	sleep 20
 	echo -e "80 seconds remaining...\n"
@@ -514,48 +512,48 @@ elkdockerup()
 	sleep 1
 
 	echo -e "Deploying collector configuration...\n"
-	
+
 		installedversion=`more installedversion.txt`
-		
-		if [ "$installedversion" == "aoscx_10.13" ]; then 
-				
+
+		if [ "$installedversion" == "aoscx_10.13" ]; then
+
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_index_template/pensando-fwlog?pretty' -d @./elasticsearch/pensando_fwlog_mapping.json
 				echo -e "\e[1;33mImporting the Kibana dashboards and maintainence plans  \n\e[0m"
-					
-									
+
+
 				sleep 10
 				pensandodash=`ls -t ./kibana/pen* | head -1`
 				elastiflowdash=`ls -t  ./kibana/kib* | head -1`
 				curl -X POST "http://localhost:5601/api/saved_objects/_import?overwrite=true" -H "kbn-xsrf: true" -H "securitytenant: global" --form file=@$pensandodash
 				curl -X POST "http://localhost:5601/api/saved_objects/_import?overwrite=true" -H "kbn-xsrf: true" -H "securitytenant: global" --form file=@$elastiflowdash
-				
-				
-		elif [ "$installedversion" == "aoscx_10.13.1000" ]; then 
-				
+
+
+		elif [ "$installedversion" == "aoscx_10.13.1000" ]; then
+
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_index_template/pensando-fwlog?pretty' -d @./elasticsearch/pensando_fwlog_mapping.json
 
 				echo -e "\e[1;33mImporting the Kibana dashboards and maintainence plans  \n\e[0m"
-									
+
 				sleep 10
 				pensandodash=`ls -t ./kibana/pen* | head -1`
 				elastiflowdash=`ls -t  ./kibana/kib* | head -1`
 				curl -X POST "http://localhost:5601/api/saved_objects/_import?overwrite=true" -H "kbn-xsrf: true" -H "securitytenant: global" --form file=@$pensandodash
 				curl -X POST "http://localhost:5601/api/saved_objects/_import?overwrite=true" -H "kbn-xsrf: true" -H "securitytenant: global" --form file=@$elastiflowdash
-				
-		elif [ "$installedversion" == "aoscx_10.14" ]; then 
-				
+
+		elif [ "$installedversion" == "aoscx_10.14" ]; then
+
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_index_template/pensando-fwlog?pretty' -d @./elasticsearch/pensando_fwlog_mapping.json
 				echo -e "\e[1;33mImporting the Kibana dashboards and maintainence plans  \n\e[0m"
-									
+
 				sleep 10
 				pensandodash=`ls -t ./kibana/pen* | head -1`
 				elastiflowdash=`ls -t  ./kibana/kib* | head -1`
 				curl -X POST "http://localhost:5601/api/saved_objects/_import?overwrite=true" -H "kbn-xsrf: true" -H "securitytenant: global" --form file=@$pensandodash
 				curl -X POST "http://localhost:5601/api/saved_objects/_import?overwrite=true" -H "kbn-xsrf: true" -H "securitytenant: global" --form file=@$elastiflowdash
-				
-				
-		elif [ "$installedversion" == "aoscx_10.14.0001" ]; then 
-				
+
+
+		elif [ "$installedversion" == "aoscx_10.14.0001" ]; then
+
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_index_template/pensando-fwlog?pretty' -d @./elasticsearch/pensando_fwlog_mapping.json
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_snapshot/my_fs_backup' -d @./elasticsearch/pensando_fs.json
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_slm/policy/pensando' -d @./elasticsearch/pensando_slm.json
@@ -563,15 +561,15 @@ elkdockerup()
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_slm/policy/elastiflow' -d @./elasticsearch/elastiflow_slm.json
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_ilm/policy/elastiflow' -d @./elasticsearch/elastiflow_ilm.json
 				echo -e "\e[1;33mImporting the Kibana dashboards and maintainence plans  \n\e[0m"
-									
+
 				sleep 10
 				pensandodash=`ls -t ./kibana/pen* | head -1`
 				elastiflowdash=`ls -t  ./kibana/kib* | head -1`
 				curl -X POST "http://localhost:5601/api/saved_objects/_import?overwrite=true" -H "kbn-xsrf: true" -H "securitytenant: global" --form file=@$pensandodash
 				curl -X POST "http://localhost:5601/api/saved_objects/_import?overwrite=true" -H "kbn-xsrf: true" -H "securitytenant: global" --form file=@$elastiflowdash
-				
-		elif [ "$installedversion" == "aoscx_10.15" ]; then 
-				
+
+		elif [ "$installedversion" == "aoscx_10.15" ]; then
+
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_index_template/pensando-fwlog?pretty' -d @./elasticsearch/pensando_fwlog_mapping.json
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_snapshot/my_fs_backup' -d @./elasticsearch/pensando_fs.json
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_slm/policy/pensando' -d @./elasticsearch/pensando_slm.json
@@ -579,63 +577,63 @@ elkdockerup()
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_slm/policy/elastiflow' -d @./elasticsearch/elastiflow_slm.json
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_ilm/policy/elastiflow' -d @./elasticsearch/elastiflow_ilm.json
 				echo -e "\e[1;33mImporting the Kibana dashboards and maintainence plans  \n\e[0m"
-									
+
 				sleep 10
 				pensandodash=`ls -t ./kibana/pen* | head -1`
 				elastiflowdash=`ls -t  ./kibana/kib* | head -1`
 				curl -X POST "http://localhost:5601/api/saved_objects/_import?overwrite=true" -H "kbn-xsrf: true" -H "securitytenant: global" --form file=@$pensandodash
 				curl -X POST "http://localhost:5601/api/saved_objects/_import?overwrite=true" -H "kbn-xsrf: true" -H "securitytenant: global" --form file=@$elastiflowdash
-				
-		elif [ "$installedversion" == "main" ]; then 
-			
-				curl -X DELETE 'http://localhost:9200/localhost:9200/_index_template/pensando-fwlog' 
+
+		elif [ "$installedversion" == "main" ]; then
+
+				curl -X DELETE 'http://localhost:9200/localhost:9200/_index_template/pensando-fwlog'
 				curl -X DELETE 'http://localhost:9200/_slm/policy/pensando'
-				curl -X DELETE 'http://localhost:9200/_ilm/policy/pensando' 
+				curl -X DELETE 'http://localhost:9200/_ilm/policy/pensando'
 				curl -X DELETE 'http://localhost:9200/_slm/policy/elastiflow'
 				curl -X DELETE 'http://localhost:9200/_ilm/policy/elastiflow'
-				
-				
+
+
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_ilm/policy/pensando_empty_delete' -d @./elasticsearch/policy/pensando_empty_delete.json
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_ilm/policy/pensando_create_allow' -d @./elasticsearch/policy/pensando_create_allow.json
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_ilm/policy/pensando_session_end' -d @./elasticsearch/policy/pensando_session_end.json
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_ilm/policy/pensando_create_deny' -d @./elasticsearch/policy/pensando_create_deny.json
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_ilm/policy/elastiflow' -d @./elasticsearch/policy/elastiflow.json
-				
+
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_index_template/pensando-fwlog-session-end?pretty' -d @./elasticsearch/template/pensando-fwlog-session-end.json
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_index_template/pensando-fwlog-create-allow?pretty' -d @./elasticsearch/template/pensando-fwlog-create-allow.json
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_index_template/pensando-fwlog-empty-delete?pretty' -d @./elasticsearch/template/pensando-fwlog-empty-delete.json
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_index_template/pensando-fwlog-create-deny?pretty' -d @./elasticsearch/template/pensando-fwlog-create-deny.json
-				
+
 				echo -e "\e[1;33mImporting the Kibana dashboards and maintainence plans  \n\e[0m"
-				
+
 				sleep 10
 				pensandodash=`ls -t ./kibana/pen* | head -1`
 				elastiflowdash=`ls -t  ./kibana/kib* | head -1`
 				curl -X POST "http://localhost:5601/api/saved_objects/_import?overwrite=true" -H "kbn-xsrf: true" -H "securitytenant: global" --form file=@$pensandodash
 				curl -X POST "http://localhost:5601/api/saved_objects/_import?overwrite=true" -H "kbn-xsrf: true" -H "securitytenant: global" --form file=@$elastiflowdash
-				
-			
-		elif [ "$installedversion" == "develop" ]; then 
-			
-				curl -X DELETE 'http://localhost:9200/localhost:9200/_index_template/pensando-fwlog' 
+
+
+		elif [ "$installedversion" == "develop" ]; then
+
+				curl -X DELETE 'http://localhost:9200/localhost:9200/_index_template/pensando-fwlog'
 				curl -X DELETE 'http://localhost:9200/_slm/policy/pensando'
-				curl -X DELETE 'http://localhost:9200/_ilm/policy/pensando' 
+				curl -X DELETE 'http://localhost:9200/_ilm/policy/pensando'
 				curl -X DELETE 'http://localhost:9200/_slm/policy/elastiflow'
 				curl -X DELETE 'http://localhost:9200/_ilm/policy/elastiflow'
-				
-				
+
+
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_ilm/policy/pensando_empty_delete' -d @./elasticsearch/policy/pensando_empty_delete.json
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_ilm/policy/pensando_create_allow' -d @./elasticsearch/policy/pensando_create_allow.json
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_ilm/policy/pensando_session_end' -d @./elasticsearch/policy/pensando_session_end.json
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_ilm/policy/pensando_create_deny' -d @./elasticsearch/policy/pensando_create_deny.json
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_ilm/policy/elastiflow' -d @./elasticsearch/policy/elastiflow.json
-				
+
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_index_template/pensando-fwlog-session-end?pretty' -d @./elasticsearch/template/pensando-fwlog-session-end.json
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_index_template/pensando-fwlog-create-allow?pretty' -d @./elasticsearch/template/pensando-fwlog-create-allow.json
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_index_template/pensando-fwlog-empty-delete?pretty' -d @./elasticsearch/template/pensando-fwlog-empty-delete.json
 				curl -XPUT -H'Content-Type: application/json' 'http://localhost:9200/_index_template/pensando-fwlog-create-deny?pretty' -d @./elasticsearch/template/pensando-fwlog-create-deny.json
-				
-				echo -e "\e[1;33mImporting the Kibana dashboards and maintainence plans  \n\e[0m"									
+
+				echo -e "\e[1;33mImporting the Kibana dashboards and maintainence plans  \n\e[0m"
 
 				sleep 10
 				pensandodash=`ls -t ./kibana/pen* | head -1`
@@ -643,12 +641,12 @@ elkdockerup()
 				curl -X POST "http://localhost:5601/api/saved_objects/_import?overwrite=true" -H "kbn-xsrf: true" -H "securitytenant: global" --form file=@$pensandodash
 				curl -X POST "http://localhost:5601/api/saved_objects/_import?overwrite=true" -H "kbn-xsrf: true" -H "securitytenant: global" --form file=@$elastiflowdash
 
-		fi 
-		
-		echo -e "\e[1;33mFinishing import  \n\e[0m"									
-		
-		sleep 20	
-		
+		fi
+
+		echo -e "\e[1;33mFinishing import  \n\e[0m"
+
+		sleep 20
+
 }
 
 proxy()
@@ -660,18 +658,18 @@ proxy()
 
   	if  [[ "$p" == "a" ]]; then
   	 	echo -e "Enter the proxy server IPv4 address or fully-qualified domain name.
- 
-Example: 
 
-192.168.0.250 
+Example:
+
+192.168.0.250
 or
 yourproxyaddress.co.uk\n" | fold -w 80 -s
 		read url
-		
+
 		read -p "Proxy server listening port: " port
 		read -p "Proxy server username: " user
 		read -p "Proxy server password: " pass
-		
+
 		### Needed for NO_PROXY environment variable
 		noproxylocalip=`hostname -I | cut -d " " -f1`
 
@@ -679,7 +677,7 @@ yourproxyaddress.co.uk\n" | fold -w 80 -s
 		sudo touch /etc/apt/apt.conf
 		sudo chmod 777 /etc/apt/apt.conf
 		echo "Acquire::http::Proxy \"http://$user:$pass@$url:$port\";" >>  /etc/apt/apt.conf
-		
+
 		git config --global http.proxy http://$user:$pass@p$url:$port
 
 		### docker
@@ -703,20 +701,20 @@ NO_PROXY=localhost,127.0.0.1,$noproxylocalip,::1
 #  		sudo systemctl restart docker.service
 
 		echo -e "Proxy server configuration complete, returning to main menu...\n"
-	
+
 	elif  [ "$p" == "n" ]; then
   	 	echo -e "Enter the proxy server IPv4 address or fully-qualified domain name.
- 
-Example: 
 
-192.168.0.250 
+Example:
+
+192.168.0.250
 or
 yourproxyaddress.co.uk\n" | fold -w 80 -s
 
 		read url
-		
+
 		read -p "Proxy server listening port: " port
-		
+
 		### cURL
 		touch ~/.curlrc
 		echo "proxy = $url:$port" >> ~/.curlrc
@@ -742,31 +740,31 @@ Environment=\"NO_PROXY=localhost,127.0.0.1,$noproxylocalip,::1\"
 
 		echo -e "Proxy server configuration complete, returning to main menu...\n"
 
-	else 
+	else
 		echo "Returning to main menu..."
 	fi
-		
-		
+
+
 }
 
 elkupgrade()
 {
-		cd /$rootfolder/$elkbasefolder/
-			
+		cd $rootfolder/$elkbasefolder/
+
 		elkdockerdown
-		
-		git pull 
-		
-		if [ "$os" == "Ubuntu" ]; then 	
+
+		git pull
+
+		if [ "$os" == "Ubuntu" ]; then
 				updates
-		elif [ "$os" == "Red" ]; then	
+		elif [ "$os" == "Red" ]; then
 				updatesred
-		fi 
-		
+		fi
+
 		echo $ELK >.env
-		
-		cd /$rootfolder/$elkbasefolder/
-		clear 
+
+		cd $rootfolder/$elkbasefolder/
+		clear
 		git branch --all | cut -d "/" -f3 > gitversion.txt
 		echo -e "Enter a line number to select a branch:\n"
 		git branch --all | cut -d "/" -f3 |grep -n ''
@@ -781,17 +779,17 @@ elkupgrade()
  		localip=`hostname -I | cut -d " " -f1`
 
 		echo $elkver >installedversion.txt
-		
+
 		olddocker=`ls -t docker*aos* |head -1`
-		
-		
+
+
 		EFaccount=`more $olddocker |grep EF_ACCOUNT_ID| cut -d ":" -f 2|cut -d " " -f2  `
 		EFLice=`more $olddocker |grep EF_FLOW_LICENSE_KEY| cut -d ":" -f 2|cut -d " " -f2  `
 		sed -i.bak  's/EF_OUTPUT_ELASTICSEARCH_ENABLE: '\''false'\''/EF_OUTPUT_ELASTICSEARCH_ENABLE: '\''true'\''/' docker-compose.yml
 		sed -i.bak -r "s/EF_OUTPUT_ELASTICSEARCH_ADDRESSES: 'CHANGEME:9200'/EF_OUTPUT_ELASTICSEARCH_ADDRESSES: '$localip:9200'/" docker-compose.yml
 		sed -i.bak -r "s/#EF_ACCOUNT_ID: ''/EF_ACCOUNT_ID: $EFaccount/" docker-compose.yml
 		sed -i.bak -r "s/#EF_FLOW_LICENSE_KEY: ''/EF_FLOW_LICENSE_KEY: $EFLice/" docker-compose.yml
-		
+
 	echo -e "The following changes have been made to the docker-compose.yml file:
 
 Before:
@@ -804,22 +802,22 @@ After:
 
 		Running version:
 		"
-				
+
 		more docker-compose.yml |egrep -i 'EF_OUTPUT_ELASTICSEARCH_ENABLE|EF_OUTPUT_ELASTICSEARCH_ADDRESSES|EF_ACCOUNT_ID|EF_FLOW_LICENSE_KEY'
 		read -p "Press enter to continue"
-		
+
 	echo -e "\e[0;31mGo and make a cup of Tea \nThis is going to take time to install and setup  \n\e[0m"
 }
 
 
 testcode()
 {
-		echo " 
+		echo "
 		Space for testing
 					"
-		#elksecurefile			
-		secureelk 
-		
+		#elksecurefile
+		secureelk
+
 }
 
 while true ;
@@ -829,10 +827,10 @@ do
   echo -e "\n\e[1;33mThis following script will setup enviroment for either the Elastic or Broker install \nThe Broker is for 3rd party intergrations. The ELK stack is for CX10k Visualization. \n\e[0m
 \e[0;31m The base install should be a clean install of Ubuntu with a static IP.\n\e[0m
 
-Workflows provided by this script will: 
+Workflows provided by this script will:
 
 - Prepare the base system deployment by ensuring that the operating system is up to date and that \n  all prerequisites are installed
-- Deploy and configure the ELK Stack components using Docker container instances and provided \n  configuration files 
+- Deploy and configure the ELK Stack components using Docker container instances and provided \n  configuration files
 - Enable username and password on ELK
 - Deploy and configure the broker for Guardicore
 - Update deployed ELK Stack components to the latest release
@@ -844,26 +842,26 @@ NOTE: If a proxy server is required for this system to connect to the internet, 
 Once the base system preparation and reboot have been completed: \nselect [E] to run the ELK Stack deployment workflow.\nselect [R] to run the Broker deployment workflow.\nselect [U] to run and ELK Stack upgrade workflow.\nselect [S] to setup username and password management for ELK\n
 
 If the ELK Stack is already deployed and needs to be updated, select [U] to run the update workflow.\n" | fold -w 120 -s
-	
-	read -p "[B]ase system preparation, [E]LK Stack deployment, B[R]oker deployment, Broker [F]irst run, [U]pdate ELK, 
+
+	read -p "[B]ase system preparation, [E]LK Stack deployment, B[R]oker deployment, Broker [F]irst run, [U]pdate ELK,
 [S]ecure - Add username and password, [P]roxy configuration, or e[X]it: " x
 
 
   x=${x,,}
-  
+
   clear
 
 	if  [ $x == "b" ]; then
 		echo -e "\nPress Ctrl+C to exit at any time.\n"
 		echo -e "This workflow should only be run once; do not run it again unless you have previously cancelled it before completion.\n" | fold -w 80 -s
 		read -p "Enter 'C' to continue: " x
-		
+
 		x=${x,,}
 		clear
 		while [ $x ==  "c" ] ;
 		do
 	    	basenote
-		  	base 
+		  	base
 		  	rebootserver
 		  	x="done"
 	  done
@@ -876,13 +874,13 @@ If the ELK Stack is already deployed and needs to be updated, select [U] to run 
 		while [[ "$x" ==  "c" ]] ;
 		do
 			elknote
-			elk 
+			elk
 			elkdockerup
 			secureelk
 			x="done"
 			exit 0
 		done
-  
+
 	elif [[ "$x" == "p" ]]; then
 		echo -e "\nPress Ctrl+C to exit at any time.\n"
 		echo -e "This workflow should normally only be run once; it should only	need to be run again if the ELK Stack components need to be updated or redeployed and the proxy server configuration has changed since the original deployment.\n" | fold -w 80 -s
@@ -892,10 +890,10 @@ If the ELK Stack is already deployed and needs to be updated, select [U] to run 
 			##clear
 		while [  "$x" ==   "c" ] ;
 		do
-			proxy 
+			proxy
 			x="done"
 		done
-				
+
 
 	elif [[ "$x" ==  "u" ]]; then
 		##clear
@@ -928,15 +926,15 @@ If the ELK Stack is already deployed and needs to be updated, select [U] to run 
 	elif [  "$x" ==  "f" ]; then
 		brokerdockerup
 		exit 0
-							
+
 	elif [  "$x" ==  "s" ]; then
 		secureelk
 		exit 0
 
-							
+
 	elif [  "$x" ==  "t" ]; then
 		testcode
-				  
+
 
 	elif [ "$x" ==  "x" ]; then
 		echo -e "\nExiting...\n"
