@@ -177,37 +177,36 @@ base()
 
 	os=`more /etc/os-release |grep PRETTY_NAME | cut -d  \" -f2 | cut -d " " -f1`
 	if [ "$os" == "Ubuntu" ]; then
-			updates
-			check_rootfolder_permissions
+        updates
+        check_rootfolder_permissions
 
-			sudo mkdir -p /etc/apt/keyrings
-			sudo  NEEDRESTART_SUSPEND=1 apt-get install curl gnupg ca-certificates lsb-release --yes
-			sudo mkdir -p /etc/apt/keyrings
-			curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+        sudo mkdir -p /etc/apt/keyrings
+        sudo  NEEDRESTART_SUSPEND=1 apt-get install curl gnupg ca-certificates lsb-release --yes
+        sudo mkdir -p /etc/apt/keyrings
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 
-			sudo echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-			sudo apt-get update --allow-insecure-repositories
-			sudo NEEDRESTART_SUSPEND=1 apt-get dist-upgrade --yes
+        sudo echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+        sudo apt-get update --allow-insecure-repositories
+        sudo NEEDRESTART_SUSPEND=1 apt-get dist-upgrade --yes
 
-			version=` more /etc/os-release |grep VERSION_ID | cut -d \" -f 2`
-			if  [ "$version" == "25.04" ]; then
-	# Ubuntu 25.04
-				sudo NEEDRESTART_SUSPEND=1 apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin python3.13-venv tmux python3-pip python3-venv kcat --yes
+        version=` more /etc/os-release |grep VERSION_ID | cut -d \" -f 2`
+        if  [ "$version" == "25.04" ]; then
+    	# Ubuntu 25.04
+			sudo NEEDRESTART_SUSPEND=1 apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin python3.13-venv tmux python3-pip python3-venv kcat --yes
 	  	elif [ "$version" == "24.04" ]; then
-	# Ubuntu 24.04
-				sudo NEEDRESTART_SUSPEND=1 apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin python3.12-venv tmux python3-pip python3-venv kcat --yes
-
+	    # Ubuntu 24.04
+            sudo NEEDRESTART_SUSPEND=1 apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin python3.12-venv tmux python3-pip python3-venv kafkacat --yes
 	  	elif [ "$version" == "22.04" ]; then
-	# Ubuntu 22.04
-				sudo NEEDRESTART_SUSPEND=1 apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin python3.11-venv tmux python3-pip python3-venv kafkacat --yes
+    	# Ubuntu 22.04
+			sudo NEEDRESTART_SUSPEND=1 apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin python3.11-venv tmux python3-pip python3-venv kafkacat --yes
 	  	elif [ "$version" == "20.04" ]; then
-	# Ubuntu 20.04
-				sudo NEEDRESTART_SUSPEND=1 apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin python3.9-venv tmux python3-pip python3-venv kafkacat --yes
+	    # Ubuntu 20.04
+			sudo NEEDRESTART_SUSPEND=1 apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin python3.9-venv tmux python3-pip python3-venv kafkacat --yes
 	   	else
 	  		sudo NEEDRESTART_SUSPEND=1 apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin python3.8-venv tmux python3-pip python3-venv kafkacat --yes
 	   	fi
 
-			sudo usermod -aG docker $real_user
+		sudo usermod -aG docker $real_user
 
 	elif [ "$os" == "Red" ]; then
 
